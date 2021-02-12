@@ -19,6 +19,8 @@ Utilisée par les fichiers du dossier "statistiques"
 $version = $GLOBALS['version'] ?? null;
 
 // pas de $version=acces direct aux pages de ce dossier => Accès refusé
+$version = $GLOBALS['version'] ?? null;
+
 if (!isset($version)) {
     include_once "../include/accessDenied.php";
 }

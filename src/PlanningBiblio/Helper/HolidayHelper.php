@@ -4,11 +4,12 @@ namespace App\PlanningBiblio\Helper;
 
 use App\PlanningBiblio\Helper\BaseHelper;
 use App\PlanningBiblio\Helper\WeekPlanningHelper;
+use App\PlanningBiblio\WorkingHours;
 use App\Model\Agent;
 
 include_once(__DIR__ . '/../../../public/joursFeries/class.joursFeries.php');
 include_once __DIR__ . '/../../../public/planningHebdo/class.planningHebdo.php';
-include_once(__diR__ . '/../../../public/include/function.php');
+include_once(__DIR__ . '/../../../public/include/function.php');
 
 class HolidayHelper extends BaseHelper
 {
@@ -82,7 +83,7 @@ class HolidayHelper extends BaseHelper
                 return $result;
             }
 
-            $week_helper = new WeekPlanningHelper($planning);
+            $week_helper = new WeekPlanningHelper($planning['times']);
             $per_week[$week_id]['worked_days'] = $week_helper->NumberWorkingDays();
 
             if (!isset($per_week[$week_id]['requested_days'])) {
@@ -186,6 +187,10 @@ class HolidayHelper extends BaseHelper
         return 0;
     }
 
+    /** NOTE The getTimes function should be on WeekPlanningHelper.
+     * Jérôme added something similar on WeekPlanningHelper (getTimes($date, $agent = null, $planning = null))
+     * TODO : See if WeekPlanningHelper::getTimes can be used instead of HolidayHelper::getTimes
+     */
     private function getTimes($planning, $date)
     {
         // Sinon, on calcule les heures d'absence
@@ -194,9 +199,19 @@ class HolidayHelper extends BaseHelper
         $day = $d->position ? $d->position : 7;
         $day = $day + (($week - 1) * 7) - 1;
 
-        return calculPresence($planning, $day);
+
+        if ($this->config('PlanningHebdo-PauseLibre')) {
+            $wh = new WorkingHours($planning['times'], $planning['breaktimes']);
+        } else {
+            $wh = new WorkingHours($planning['times']);
+        }
+        return $wh->hoursOf($day);
     }
 
+    /** NOTE The getPlanning function should be on WeekPlanningHelper.
+     * Jérôme added something similar on WeekPlanningHelper (getPlanning($date, $agent))
+     * TODO : See if WeekPlanningHelper::getPlanning can be used instead of HolidayHelper::getPlanning
+     */
     private function getPlanning($date)
     {
          // On consulte le planning de présence de l'agent
@@ -215,34 +230,7 @@ class HolidayHelper extends BaseHelper
          $times = $p->elements[0]['temps'];
          $breaktimes = $p->elements[0]['breaktime'];
 
-         if ($this->config('PlanningHebdo-PauseLibre')) {
-             foreach ($times as $index => $t) {
-                 // FIXME: This make the feature inconsistent with
-                 // the option 'PlanningHebdo-Pause2'.
-                 $start_break = $t[1];
-                 $end_break = $t[2];
-                 $end_hour = $t[3];
-
-                 if ($breaktimes[$index]) {
-                     $minutes = $breaktimes[$index] * 60;
-                     $end_hour = date('H:i:s', strtotime("- $minutes minutes $end_hour"));
-                 }
-
-                 if (strtotime($end_hour) < strtotime($end_break)) {
-                     $end_break = $end_hour;
-                 }
-
-                 if (strtotime($end_hour) < strtotime($start_break)) {
-                     $start_break = $end_hour;
-                 }
-
-                 $times[$index][1] = $start_break;
-                 $times[$index][2] = $end_break;
-                 $times[$index][3] = $end_hour;
-             }
-         }
-
-         return $times;
+         return array('times' => $times, 'breaktimes' => $breaktimes);
     }
 
     private function isClosingDay($date)

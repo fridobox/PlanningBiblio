@@ -76,6 +76,74 @@ $(document).ready(function(){
     });
   }
 
+  $('td.menuTrigger').hover(
+    function() {
+      if ($(this).is(':last-child')) {
+        return;
+      }
+
+      if ($(this).find('div').length == 0) {
+        return;
+      }
+
+      if ($(this).next().hasClass('cellule_grise')) {
+        return;
+      }
+
+      if ($(this).next().find('div').length) {
+        return;
+      }
+
+      $(this).find('a.arrow-right').show();
+    },
+    function() {
+      $(this).find('a.arrow-right').hide();
+    }
+  );
+
+  $('tr').on('click', '.arrow-right', function() {
+    var cell = $(this).parent();
+    var job = cell.data('situation');
+    var cell_to = cell.next();
+    var cellid = cell_to.data('cell');
+    var cFrom = cell_to.data('start');
+    var to = cell_to.data('end');
+    var date = $('#date').val();
+    var site = $('#site').val();
+
+    i = 0;
+    checkcopy_agents = [];
+
+    cell.find('div').each(function() {
+        var element = $(this).clone();
+        var agent_id = element.data('perso-id');
+        element.attr('id', cellid + '_' + i);
+        checkcopy_agents.push(agent_id);
+        i++;
+    });
+
+    checkcopy_agents = JSON.stringify(checkcopy_agents);
+
+    $.ajax({
+        url: '/ajax/planningjob/checkcopy',
+        type: "get",
+        dataType: "json",
+        data: {date: date, from: cFrom, to: to, agents: checkcopy_agents},
+        success: function(result) {
+            if (result.availables.length) {
+                var agents = JSON.stringify(result.availables);
+                bataille_navale(job, date, cFrom, to, agents, '', '', site, '', null, cellid);
+            }
+            if (result.unavailables) {
+                var message = "Les agents suivants n'ont pas été placés car ils sont indisponibles de " + heureFr(cFrom) + " à " + heureFr(to) + " : " + result.unavailables;
+                CJInfo(message, 'error');
+            }
+        },
+        error: function(){
+            CJInfo("Une erreur est survenue lors de la copie.", "error");
+        }
+    });
+  });
 });
 
 // Evénements JQuery
@@ -535,7 +603,7 @@ function appelDispo(site,siteNom,poste,posteNom,date,debut,fin){
  * 
  * @param int perso_id : Si 0 = griser la cellule, si 2 = Tout le monde
  */
-function bataille_navale(poste,date,debut,fin,perso_id,barrer,ajouter,site,tout,griser){
+function bataille_navale(poste,date,debut,fin,perso_id,barrer,ajouter,site,tout,griser,cellid){
   if(griser==undefined){
     griser=0;
   }
@@ -547,7 +615,11 @@ function bataille_navale(poste,date,debut,fin,perso_id,barrer,ajouter,site,tout,
   if(tout==undefined){
     tout=0;
   }
-  
+
+  if (typeof cellid != 'undefined') {
+    cellule = cellid;
+  }
+
   var sr_config_debut=$("#planning-data").attr("data-sr-debut");
   var sr_config_fin=$("#planning-data").attr("data-sr-fin");
   var CSRFToken = $("#planning-data").attr("data-CSRFToken");
@@ -663,6 +735,10 @@ function bataille_navale(poste,date,debut,fin,perso_id,barrer,ajouter,site,tout,
         // Complète le tableau cellules initialisé au chargement de la page et contenant toutes les cellules ajoutées par la fonction bataille_navale
         cellules.push($('#cellule'+cellule+'_'+i));
       }
+
+      // Ajout du widget pour copier les agents dans
+      // la cellule immédiatement à droite.
+      $("#td"+cellule).append('<a class="pl-icon arrow-right" href="#"></a>');
 
       // Suppresion de la surbrillance sur toutes les cellules une fois l'agent posté ou supprimé
       $('.pl-highlight').removeClass('pl-highlight', {duration:2500});

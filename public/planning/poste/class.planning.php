@@ -16,6 +16,8 @@ Utilisée par les fichiers du dossier "planning/poste"
 */
 
 // pas de $version=acces direct aux pages de ce dossier => Accès refusé
+$version = $GLOBALS['version'] ?? null;
+
 if (!isset($version)) {
     include_once "../../include/accessDenied.php";
 }
@@ -235,8 +237,6 @@ class planning
                             $pourcent=null;
                             if (strpos($elem["heures_hebdo"], "%") and $elem["heures_hebdo"]!="100%") {
                                 $pourcent=" {$elem["heures_hebdo"]}";
-                                $calcul_pourcentage = (float) str_replace('%', null, $elem["heures_hebdo"]);
-                                $heuresAbsences = $heuresAbsences * $calcul_pourcentage / 100;
                             }
               
                             $heuresHebdoTitle="Quota hebdomadaire = ".heure4($heuresHebdo, true)." - ".heure4($heuresAbsences, true)." (Absences{$pourcent})";
@@ -630,6 +630,24 @@ class planning
                 $this->validation=null;
             }
         }
+    }
+
+    public function update_cell_add_agents($date, $debut, $fin, $poste, $site, $perso_id, $login_id, $CSRFToken)
+    {
+        $insert = array(
+            "date" => $date,
+            "debut" => $debut,
+            "fin" => $fin,
+            "poste" => $poste,
+            "site" => $site,
+            "perso_id" => $perso_id,
+            "chgt_login" => $login_id,
+            "chgt_time" => date("Y-m-d H:i:s")
+        );
+
+        $db = new db();
+        $db->CSRFToken = $CSRFToken;
+        $db->insert("pl_poste", $insert);
     }
 
     // Insertion, mise à jour des notes

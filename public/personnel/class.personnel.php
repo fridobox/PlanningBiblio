@@ -18,6 +18,8 @@ Page appelée par les autres fichiers du dossier personnel
 */
 
 // pas de $version=acces direct aux pages de ce dossier => Accès refusé
+$version = $GLOBALS['version'] ?? null;
+
 if (!isset($version) and php_sapi_name() != 'cli') {
     include_once(__DIR__.'/../include/accessDenied.php');
 }
@@ -100,6 +102,7 @@ class personnel
 
         if ($this->responsablesParAgent) {
             $db=new db();
+            $db->sanitize_string = false;
             $db->selectLeftJoin(
                 array('personnel', 'id'),
                 array('responsables', 'perso_id'),
@@ -111,6 +114,7 @@ class personnel
       );
         } else {
             $db=new db();
+            $db->sanitize_string = false;
             $db->select2("personnel", null, $filter, "ORDER BY $tri");
         }
 
@@ -185,6 +189,7 @@ class personnel
     {
         if (is_numeric($id)) {
             $db=new db();
+            $db->sanitize_string = false;
             $db->select("personnel", null, "id='$id'");
             $this->elements=$db->result;
             $sites = json_decode(html_entity_decode($db->result[0]['sites'], ENT_QUOTES|ENT_IGNORE, 'UTF-8'), true);
@@ -193,6 +198,7 @@ class personnel
         } elseif (is_array($id)) {
             $ids=join(",", $id);
             $db=new db();
+            $db->sanitize_string = false;
             $db->select2("personnel", null, array("id"=>"IN $ids"));
             if ($db->result) {
                 foreach ($db->result as $elem) {
@@ -266,8 +272,7 @@ class personnel
      */
     public function getICSURL($id)
     {
-        $url = createURL();
-        $url .= "/ics/calendar.php?id=$id";
+        $url = "/ics/calendar.php?id=$id";
         if ($GLOBALS['config']['ICS-Code']) {
             $code = $this->getICSCode($id);
             $url .= "&amp;code=$code";

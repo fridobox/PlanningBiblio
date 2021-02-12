@@ -1951,6 +1951,204 @@ if (version_compare($config['Version'], $v) === -1) {
     $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
 }
 
+$v="20.05.00.007";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page` = '/closingday' WHERE `page` ='joursFeries/index.php';";
+    $sql[]="DELETE FROM `{$dbprefix}acces` WHERE `page` ='joursFeries/valid.php';";
+    $sql[]="UPDATE `{$dbprefix}menu` SET `url` = '/closingday' WHERE `url` ='joursFeries/index.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.05.00.008";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page` = '/position'  WHERE  `page` = 'postes/index.php' ;";
+    $sql[]="DELETE FROM `{$dbprefix}acces` WHERE  `page` = 'postes/valid.php' ;";
+    $sql[]="DELETE FROM `{$dbprefix}acces` WHERE  `page` = 'postes/modif.php' ;";
+    $sql[]="UPDATE `{$dbprefix}menu` SET `url` = '/position'  WHERE  `url` = 'postes/index.php' ;";
+
+    $db = new db();
+    $db->select2('select_etages', array('id', 'valeur'), "`valeur` LIKE '%&%'");
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['valeur'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}select_etages` SET `valeur` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $db = new db();
+    $db->select2('select_groupes', array('id', 'valeur'), "`valeur` LIKE '%&%'");
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['valeur'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}select_groupes` SET `valeur` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $db = new db();
+    $db->select2('postes', array('id', 'nom'), "`nom` LIKE '%&%'");
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['nom'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}postes` SET `nom` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $db = new db();
+    $db->select2('postes', array('id', 'etage'), "`etage` LIKE '%&%'");
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['etage'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}postes` SET `etage` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $db = new db();
+    $db->select2('postes', array('id', 'groupe'), "`groupe` LIKE '%&%'");
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['groupe'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}postes` SET `groupe` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.10.00.000";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.001";
+if (version_compare($config['Version'], $v) === -1) {
+
+    $db = new db();
+    $db->select2('jours_feries', array('id', 'nom'), "`nom` LIKE '%&%'");
+
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['nom'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}jours_feries` SET `nom` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+
+    $db = new db();
+    $db->select2('jours_feries', array('id', 'commentaire'), "`commentaire` LIKE '%&%'");
+
+    if($db->result){
+        foreach ($db->result as $elem) {
+            $id = $elem['id'];
+            $old = $elem['commentaire'];
+            $new = html_entity_decode($old, ENT_QUOTES|ENT_IGNORE, 'UTF-8');
+            if ($new != $old) {
+                $new = addslashes($new);
+                $sql[] = "UPDATE `{$dbprefix}jours_feries` SET `commentaire` = '$new' WHERE `id` = '$id';";
+            }
+        }
+    }
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.002";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[] = "UPDATE `{$dbprefix}acces` SET `page` = '/notification' WHERE `page` ='notifications/index.php';";
+    $sql[] = "UPDATE `{$dbprefix}menu` SET `url` = '/notification' WHERE `url` ='notifications/index.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.003";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="UPDATE `{$dbprefix}acces` set `page`='/workinghour' WHERE `page`='planningHebdo/index.php';";
+    $sql[]="UPDATE `{$dbprefix}menu` set `url`='/workinghour' WHERE `url`='planningHebdo/index.php';";
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.004";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="DELETE from `{$dbprefix}acces` WHERE `page` = 'planning/postes_cfg/index.php';";
+    $sql[]="UPDATE `{$dbprefix}menu` SET `url` = '/framework' WHERE `url` = 'planning/postes_cfg/index.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.005";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="UPDATE `{$dbprefix}acces` SET `groupe`='', `page`='/workinghour' WHERE `nom`='Planning Hebdo - suppression'";
+    $sql[]="UPDATE `{$dbprefix}acces` SET `nom`='Planning Hebdo - Admin N1' WHERE `nom`='Planning Hebdo - Index '";
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page`='' WHERE `groupe`!=''  AND (`page` LIKE '%planningHebdo%' OR `page` = '/workinghour')";
+    $sql[]="DELETE FROM `{$dbprefix}acces` WHERE `groupe`='' AND (`page` LIKE '%planningHebdo%' OR `page` = '/workinghour')";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.006";
+if (version_compare($config['Version'], $v) === -1) {
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page` = '' WHERE `page`='statistiques/index.php';";
+    $sql[]="UPDATE `{$dbprefix}menu` SET `url` = '/statistics' WHERE `url`='statistiques/index.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.007";
+if (version_compare($config['Version'], $v) === -1) {
+    # Symfinization of framework lines
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page`='' WHERE `page`='planning/postes_cfg/lignes_sep.php';";
+
+    # Symfinization of framework groups
+    $sql[]=" UPDATE `{$dbprefix}acces` SET `page`='' WHERE `page` = 'planning/postes_cfg/groupes.php';";
+    $sql[]=" UPDATE `{$dbprefix}acces` SET `page`='' WHERE `page`= 'planning/postes_cfg/groupes2.php';";
+
+    # Symfinization of myaccount
+    $sql[]="DELETE FROM `{$dbprefix}acces` WHERE `page`='monCompte.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
+$v="20.11.00.008";
+if (version_compare($config['Version'], $v) === -1) {
+    // Symfonyse frameword edition
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page` = '' WHERE `page` = 'planning/postes_cfg/modif.php';";
+
+    // Symfonyse agent index
+    $sql[]="UPDATE `{$dbprefix}acces`SET `page` = '' WHERE `page`='personnel/index.php';";
+    $sql[]="UPDATE `{$dbprefix}acces` SET `page`= '' WHERE `page`='personnel/valid.php';";
+    $sql[]="UPDATE `{$dbprefix}menu` SET `url` = '/agent' WHERE `url`='personnel/index.php';";
+
+    $sql[] = "UPDATE `{$dbprefix}config` SET `valeur`='$v' WHERE `nom`='Version';";
+}
+
 //	Execution des requetes et affichage
 foreach ($sql as $elem) {
     $db=new db();

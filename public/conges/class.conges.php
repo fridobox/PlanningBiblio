@@ -1,13 +1,10 @@
 <?php
 /**
-Planning Biblio, Plugin Congés Version 2.8.04
+Planning Biblio
 Licence GNU/GPL (version 2 et au dela)
 Voir les fichiers README.md et LICENSE
-@copyright 2013-2018 Jérôme Combes
 
-Fichier : conges/class.conges.php
-Création : 24 juillet 2013
-Dernière modification : 29 octobre 2018
+@file public/conges/class.conges.php
 @author Jérôme Combes <jerome@planningbiblio.fr>
 @author Etienne Cavalié
 
@@ -28,6 +25,7 @@ require_once __DIR__."/../joursFeries/class.joursFeries.php";
 require_once __DIR__."/../personnel/class.personnel.php";
 require_once __DIR__."/../absences/class.absences.php";
 
+use App\PlanningBiblio\WorkingHours;
 
 class conges
 {
@@ -69,8 +67,7 @@ class conges
         $data['heures']=$data['heures'].".".$data['minutes'];
         $data['debut']=dateSQL($data['debut']);
         $data['fin']=dateSQL($data['fin']);
-
-        $data = $this->applyHalfDays($data);
+        $data['halfday'] = isset($data['halfday']) && $data['halfday'] == 'on' ? 1 : 0;
 
         // Enregistrement du congé
         $db=new db();
@@ -142,7 +139,8 @@ class conges
             $debutConges=strtotime($debutConges);
             $finConges=strtotime($finConges);
       
-            $temps = calculPresence($p->elements[0]['temps'], $jour);
+            $wh = new WorkingHours($p->elements[0]['temps']);
+            $temps = $wh->hoursOf($jour);
       
             foreach ($temps as $t) {
                 $t0 = strtotime($t[0]);
@@ -860,10 +858,9 @@ class conges
                 // Récupération du numéro du site concerné par la date courante
                 $offset=$jour-1+($semaine*7)-7;
                 if (array_key_exists($offset, $temps)) {
-                    if (array_key_exists(4, $temps[$offset])) {
+                    $site = 1;
+                    if (!empty($temps[$offset][4])) {
                         $site=$temps[$offset][4];
-                    } else {
-                        $site=1;
                     }
                     // Ajout du numéro du droit correspondant à la gestion des congés de ce site
                     // Validation niveau 1
@@ -1064,16 +1061,15 @@ class conges
         $data['hre_fin']=$data['hre_fin']?$data['hre_fin']:"23:59:59";
         $data['heures']=$data['heures'].".".$data['minutes'];
         $data['commentaires']=htmlentities($data['commentaires'], ENT_QUOTES|ENT_IGNORE, "UTF-8", false);
+        $data['halfday'] = isset($data['halfday']) && $data['halfday'] == 'on' ? 1 : 0;
         $data['refus']=htmlentities($data['refus'], ENT_QUOTES|ENT_IGNORE, "UTF-8", false);
         $data['debut']=dateSQL($data['debut']);
         $data['fin']=dateSQL($data['fin']);
 
-        $data = $this->applyHalfDays($data);
-
         $update=array(
             'debut'         => $data['debut'] . ' ' . $data['hre_debut'],
             'fin'           => $data['fin'] . ' ' . $data['hre_fin'],
-            'halfday'       => $data['halfday'] ? 1 : 0,
+            'halfday'       => $data['halfday'],
             'start_halfday' => $data['start_halfday'],
             'end_halfday'   => $data['end_halfday'],
             'commentaires'  => $data['commentaires'],
@@ -1263,45 +1259,6 @@ class conges
             'from'  => $db->result[0]['debut'],
             'to'    => $db->result[0]['fin']
         );
-    }
-
-    private function applyHalfDays($data)
-    {
-        // Ability to request half day.
-        $data['halfday'] = isset($data['halfday']) ? $data['halfday'] : 0;
-
-        $config = $GLOBALS['config'];
-        if ($config['Conges-Mode'] == 'jours'
-            && $config['Conges-demi-journees']
-            && $data['halfday']) {
-
-            if (!$data['fin']) {
-                $data['fin'] = $data['debut'];
-                $data['end_halfday'] = $data['start_halfday'];
-            }
-
-            if ($data['debut'] == $data['fin']) {
-                if ($data['start_halfday'] == 'morning') {
-                    $data['hre_debut'] = '00:00:00';
-                    $data['hre_fin'] = '12:00:00';
-                }
-                if ($data['start_halfday'] == 'afternoon') {
-                    $data['hre_debut'] = '12:00:00';
-                    $data['hre_fin'] = '23:59:59';
-                }
-            }
-
-            if (strtotime($data['debut']) < strtotime($data['fin'])) {
-                if ($data['start_halfday'] == 'afternoon') {
-                    $data['hre_debut'] = '12:00:00';
-                }
-                if ($data['end_halfday'] == 'morning') {
-                    $data['hre_fin'] = '12:00:00';
-                }
-            }
-        }
-
-        return $data;
     }
 
 }

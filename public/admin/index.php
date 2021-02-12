@@ -31,10 +31,10 @@ if (in_array(5, $droits)) {
     echo "<li><a href='{$config['URL']}/skill'>Les activités</a></li>\n";
 }
 if (in_array(4, $droits)) {
-    echo "<li><a href='index.php?page=personnel/index.php'>Les agents</a></li>\n";
+    echo "<li><a href='/agent'>Les agents</a></li>\n";
 }
 if (in_array(5, $droits)) {
-    echo "<li><a href='index.php?page=postes/index.php'>Les postes</a></li>\n";
+    echo "<li><a href='{$config['URL']}/position'>Les postes</a></li>\n";
 }
 
 // Gestion des modèles
@@ -50,7 +50,7 @@ if ($access) {
 }
 
 if (in_array(22, $droits)) {
-    echo "<li><a href='index.php?page=planning/postes_cfg/index.php'>Les tableaux</a></li>\n";
+    echo "<li><a href='{$config['URL']}/framework'>Les tableaux</a></li>\n";
 }
 if (in_array(1101, $droits)) {
     echo "<li><a href='index.php?page=admin/feries.php'>Jours feri&eacute;s</a></li>\n";

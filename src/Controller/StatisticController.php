@@ -26,6 +26,13 @@ class StatisticController extends BaseController
 {
 
     /**
+     * @Route("/statistics", name="statistics.index", methods={"GET"})
+     */
+    public function index(Request $request, Session $session)
+    {
+        return $this->output('statistics/index.html.twig');
+
+    /**
      * @Route("/statistics/position", name="statistics.position", methods={"GET", "POST"})
      */
     public function position(Request $request, Session $session)

@@ -7,7 +7,7 @@ namespace App\Model;
  **/
 class AbsenceDocument extends PLBEntity
 {
-    const UPLOAD_DIR = '/../../upload/absences/';
+    protected $upload_dir = '';
 
     /** @Id @Column(type="integer") @GeneratedValue **/
     protected $id;
@@ -23,7 +23,16 @@ class AbsenceDocument extends PLBEntity
 
     public function deleteFile() {
         if (!$this->absence_id || !$this->filename || !$this->id) return;
-        unlink(__DIR__ . AbsenceDocument::UPLOAD_DIR . $this->absence_id . '/' . $this->id . '/' . $this->filename);
-        rmdir(__DIR__ . AbsenceDocument::UPLOAD_DIR . $this->absence_id . '/' . $this->id);
+
+        unlink($this->upload_dir() . $this->absence_id . '/' . $this->id . '/' . $this->filename);
+        rmdir($this->upload_dir() . $this->absence_id . '/' . $this->id);
+    }
+
+    public function upload_dir() {
+        if (!$this->upload_dir) {
+            $this->upload_dir = __DIR__ . '/../../var/upload/' . $_ENV['APP_ENV'] . '/absences/';
+        }
+
+        return $this->upload_dir;
     }
 }

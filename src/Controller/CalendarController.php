@@ -102,6 +102,14 @@ class CalendarController extends BaseController
             }
         }
 
+        $db = new \db();
+        $db->select2("pl_poste_verrou", array("site","date"), array("verrou2"=>">0", "date"=>"BETWEEN $debutSQL AND $finSQL"));
+        if ($db->result) {
+            foreach ($db->result as $elem) {
+                $verrou[$elem['site']][]=$elem['date'];
+            }
+        }
+
         //Sélection des postes occupés
         $db = new \db();
         $db->selectInnerJoin(
@@ -204,7 +212,6 @@ class CalendarController extends BaseController
             $nom = null;
             // Jours fériés : affiche Bibliothèque fermée et passe au jour suivant
             if (array_key_exists($current, $joursFeries) and $joursFeries[$current]['fermeture']) {
-                $current = date("Y-m-d", mktime(0, 0, 0, $date_tab[1], $date_tab[2]+1, $date_tab[0]));
                 $closed = true;
                 $nom = $joursFeries[$current]['nom'];
             }

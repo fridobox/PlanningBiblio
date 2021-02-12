@@ -26,8 +26,8 @@ $_SESSION['oups']['Auth-Mode'] = isset($_SESSION['oups']['Auth-Mode']) ? $_SESSI
 $_SESSION['oups']['week'] = isset($_SESSION['oups']['week']) ? $_SESSION['oups']['week'] : '';
 
 // Version
-$version="20.05.00.006"; // xx.xx.xx.xxx
-$displayed_version="20.05.00"; // xx.xx.xx
+$version="20.11.00.008"; // xx.xx.xx.xxx
+$displayed_version="20.11.00"; // xx.xx.xx
 require_once __DIR__.'/../vendor/autoload.php';
 
 use Symfony\Component\HttpFoundation\Request;
@@ -46,8 +46,6 @@ require_once(__DIR__.'/lang/fr_FR.php');
 if (file_exists(__DIR__.'/lang/custom.php')) {
     require_once(__DIR__.'/lang/custom.php');
 }
-
-date_default_timezone_set("Europe/Paris");
 
 require_once(__DIR__.'/init_entitymanager.php');
 require_once(__DIR__.'/init_plugins.php');
@@ -116,7 +114,7 @@ if (!file_exists("themes/$theme/$theme.css")) {
 }
 
 $themeJQuery = $config['Affichage-theme'] ?$config['Affichage-theme'] : "default";
-if (!file_exists("themes/$theme/jquery-ui.min.css")) {
+if (!file_exists("themes/$themeJQuery/jquery-ui.min.css")) {
     $themeJQuery="default";
 }
 

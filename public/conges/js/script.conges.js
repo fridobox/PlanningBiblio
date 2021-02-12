@@ -1,12 +1,9 @@
 /**
-Planning Biblio, Plugin Congés
+Planning Biblio
 Licence GNU/GPL (version 2 et au dela)
 Voir les fichiers README.md et LICENSE
-@copyright 2013-2018 Jérôme Combes
 
-Fichier : conges/js/script.conges.js
-Création : 2 août 2013
-Dernière modification : 12 septembre 2018
+@file public/conges/js/script.conges.js
 @author Jérôme Combes <jerome@planningbiblio.fr>
 @author Etienne Cavalié <etienne.cavalie@unice.fr>
 
@@ -24,6 +21,8 @@ function afficheRefus(me){
 }
 
 function calculCredit(){
+  if( ! $('input[name=debut]').length) { return; }
+
   debut=document.form.elements["debut"].value;
   fin=document.form.elements["fin"].value;
   hre_debut=document.form.elements["hre_debut"].value;
@@ -50,29 +49,6 @@ function calculCredit(){
 
     start = ddmmyyyy_to_date(debut);
     end = ddmmyyyy_to_date(fin);
-
-    if (start.getTime() == end.getTime()) {
-      if (start_halfday == 'morning') {
-        hre_debut = '00:00:00';
-        hre_fin = '12:00:00';
-      }
-
-      if (start_halfday == 'afternoon') {
-        hre_debut = '12:00:00';
-        hre_fin = '23:59:59';
-      }
-    }
-
-    if (start.getTime() < end.getTime()) {
-      if (start_halfday == 'afternoon') {
-        hre_debut = '12:00:00';
-      }
-
-      if (end_halfday == 'morning') {
-        hre_fin = '12:00:00';
-      }
-    }
-
   }
 
   $.ajax({
@@ -373,14 +349,19 @@ function verifConges(){
   }
   
   // Vérifions si le solde des récupérations n'est pas négatif
-  var recuperation = parseFloat( $('#recup4').text() );
-  if(parseFloat(recuperation) < 0 && $('#validation').val() >= 0 ){
+  var recuperation = parseFloat( $('#recup4').text().replace('h', '.') );
+  if(recuperation < 0) {
     $('.recup-alert').remove();
-    CJInfo("Le crédit de récupération ne peut pas être négatif.", "error", null, 5000, 'recup-alert');
     $(".balance_tr").effect("highlight",null,4000);
-    return false;
+    if ($('#validation').val() > 0) {
+      CJInfo("Le crédit de récupération ne peut pas être négatif.", "error", null, 5000, 'recup-alert');
+      return false;
+    } else {
+      if (!confirm("Attention!\nLe crédit de récupération ne peut pas être négatif.\nCette demande ne pourra pas être validée tant que le crédit restera insufisant.\nVoulez-vous continuer ?")) {
+        return false;
+      }
+    }
   }
-  
 
   // Vérifions si un autre congé a été demandé ou validé
   var result=$.ajax({
@@ -389,7 +370,7 @@ function verifConges(){
     data: "perso_id="+perso_id+"&debut="+debut+"&fin="+fin+"&hre_debut="+hre_debut+"&hre_fin="+hre_fin+"&id="+id,
     async: false,
     success: function(data){
-      if(data != "Pas de congé"){
+      if(data.trim() != "Pas de congé"){
         information("Un congé a déjà été demandé " + data,"error");
       }else{
         $("#form").submit();
@@ -481,10 +462,6 @@ function checkSamedi( o, n ) {
 
 
 $(function(){
-  $('.checkdate').on('change', function() {
-    calculCredit();
-  });
-
   $(".googleCalendarTrigger").change(function(){
     googleCalendarIcon();
   });

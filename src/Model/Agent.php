@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Table;
 use Doctrine\ORM\Mapping\Id;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\GeneratedValue;
+require_once(__DIR__ . '/../../public/absences/class.absences.php');
+require_once(__DIR__ . '/../../public/include/db.php');
 
 /**
  * @Entity @Table(name="personnel")
@@ -181,5 +183,80 @@ class Agent extends PLBEntity {
         $emails_string = $this->mails_responsables();
 
         return explode(';', $emails_string);
+    }
+
+    public function isAbsentOn($from, $to)
+    {
+        $a = new \absences();
+        if ($a->check($this->id(), $from, $to, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isOnVacationOn($from, $to)
+    {
+        $c = new \conges();
+        if ($c->check($this->id(), $from, $to, true)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function getWorkingHoursOn($date)
+    {
+        $config = $GLOBALS['config'];
+
+        if (!$config['PlanningHebdo']) {
+            return array('temps' => json_decode($this->temps()));
+        }
+
+        $working_hours = new \planningHebdo();
+        $working_hours->perso_id = $this->id;
+        $working_hours->debut = $date;
+        $working_hours->fin = $date;
+        $working_hours->valide = false;
+        $working_hours->fetch();
+
+        if (empty($working_hours->elements)) {
+            return array();
+        }
+
+        return $working_hours->elements[0];
+    }
+
+    public function isBlockedOn($date, $start, $end)
+    {
+        $id = $this->id();
+
+        $db=new \db();
+        $db->select(
+            'pl_poste',
+            'poste',
+            "`perso_id` = $id and `debut` < '$end' and `fin` > '$start' and `date`='$date' and `supprime`='0'"
+        );
+
+        $postes = array();
+        if ($db->result) {
+            foreach ($db->result as $elem) {
+                $postes[] = $elem['poste'];
+            }
+        }
+
+        if (empty($postes)) {
+            return false;
+        }
+
+        foreach ($postes as $poste) {
+            $db=new \db();
+            $db->select('postes', 'bloquant', "`id` = $poste");
+            if ($db->result && $db->result[0]['bloquant']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
